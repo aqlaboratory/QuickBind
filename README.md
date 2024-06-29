@@ -31,9 +31,9 @@ git checkout efcf80f50e5534cdf9b5ede56ef1cbbd1471775e
 pip install ./
 ```
 
-## Download training and evaluation data
+## Downloading training and evaluation data
 
-Download the PDBBind dataset:
+Download the PDBBind dataset and place it in the `data/` directory:
 ```bash
 wget https://www.zenodo.org/record/6408497/files/PDBBind.zip?download=1
 unzip 'PDBBind.zip?download=1'
@@ -44,17 +44,15 @@ Similarly, the PoseBusters benchmark set can be downloaded from [zenodo](https:/
 
 ## Training the model
 
-QuickBind was trained using gradient accumulation on two 4-GPU nodes, resulting in an effective batch size of 16. The number of nodes can be set using the `num_nodes` argument of `pl.Trainer` in `train_pl.py`. The number of iterations over which to accumulate gradients can be set using the `iters_to_accumulate` keyword in the configuration file. To train QuickBind using its default parameters, run:
+QuickBind was trained using gradient accumulation on two 4-GPU nodes, resulting in an effective batch size of 16. The number of nodes can be set using the `num_nodes` argument of `pl.Trainer` in [train_pl.py](train_pl.py). The number of iterations over which to accumulate gradients can be set using the `iters_to_accumulate` keyword in the configuration file. To train QuickBind using its default parameters, run:
 ```bash
 python train_pl.py --config configs/quickbind_default.yml
 ```
-For fine-tuning using a larger crop size, add `--finetune True`. To resume training from the most recent checkpoint file, add `--resume True` and provide the W&B ID to the `--id` flag. After training, copy the configuration file to the checkpoints directory, for example, like so:
+For fine-tuning using a larger crop size, add `--finetune True`. To resume training from the most recent checkpoint file, add `--resume True` and provide the Weights & Biases ID to the `--id` flag. After training, copy the configuration file to the checkpoints directory, for example, like so:
 ```bash
 cp configs/quickbind_default.yml checkpoints/quickbind_default/config.yaml
 ```
-We provide processed input files for the training, validation, and test sets as well as for the PoseBusters benchmark set on zenodo. To use them rather than processing the input files yourself, download them and put them in `data/processed/timesplit_no_lig_overlap_train`, `data/processed/timesplit_no_lig_overlap_val`, `data/processed/timesplit_test` or `data/processed/posebusters`, respectively.
-
-Model weights are stored in `checkpoints/quickbind_default`. We provide model weights for the final model under `checkpoints/quickbind_default/best_checkpoint.pt`.
+Model weights are stored in [checkpoints/quickbind_default](checkpoints/quickbind_default), which also contains model weights for the final QuickBind model.
 
 ## Running inference
 
@@ -62,11 +60,25 @@ The following command will run inference on the PDBBind test set using the model
 ```bash
 python inference.py --name quickbind_default
 ```
-Adding `--unseen_only True` will only include proteins that the model has not seen during training. Adding `--save_to_file True` will save the predictions to SD files. Adding `--pb_set True` will run inference on the PoseBusters test set. We provide predictions of the final model, including SD files, on zenodo.
+Adding `--unseen_only True` will only include proteins that the model has not seen during training. Adding `--save_to_file True` will save the predictions to SD files. Adding `--pb_set True` will run inference on the PoseBusters test set.
+
+To facilitate the reproduction of the results from the paper, we provide processed input files for the PDBBind and PoseBusters test sets, and predictions of the final model, including SD files, on [zenodo](https://zenodo.org/records/12509123). To use the preprocessed input files, download them and put them in `data/processed/timesplit_test` and `data/processed/posebusters`, respectively:
+```bash
+wget https://zenodo.org/records/12509123/files/QuickBind_Zenodo.zip?download=1
+unzip 'QuickBind_Zenodo.zip?download=1'
+mv QuickBind_Zenodo/processed_input_files/timesplit_test/ data/processed/
+mv QuickBind_Zenodo/processed_input_files/posebusters/ data/processed/
+```
+
+To evaluate the provided predictions, download them, place them in `checkpoints/quickbind_default`, and run the inference script:
+```bash
+mv QuickBind_Zenodo/predictions/* checkpoints/quickbind_default/
+python inference.py --name quickbind_default
+```
 
 ## Binding affinity prediction
 
-Download, extract, and process the PDBBind data:
+Download, extract, and process the raw PDBBind data:
 ```bash
 wget https://pdbbind.oss-cn-hangzhou.aliyuncs.com/download/PDBbind_v2020_plain_text_index.tar.gz
 tar -xf PDBbind_v2020_plain_text_index.tar.gz
@@ -80,16 +92,29 @@ python inference.py --name quickbind_default --train_set True --output_s True
 python inference.py --name quickbind_default --val_set True --output_s True
 python inference.py --name quickbind_default --output_s True
 ```
-Alternatively, you can download extracted embeddings from zenodo. To train and evaluate the binding affinity prediction model run:
+Alternatively, we provide extracted embeddings on [zenodo](https://zenodo.org/records/12509123):
+```bash
+mv QuickBind_Zenodo/predictions_w_embeddings/predictions-w-single-rep-curr-train.pt checkpoints/quickbind_default/train_predictions-w-single-rep.pt
+mv QuickBind_Zenodo/predictions_w_embeddings/predictions-w-single-rep-curr-val.pt checkpoints/quickbind_default/val_predictions-w-single-rep.pt
+mv QuickBind_Zenodo/predictions_w_embeddings/predictions-w-single-rep-curr.pt checkpoints/quickbind_default/predictions-w-single-rep.pt
+```
+
+To train and evaluate the binding affinity prediction model run:
 ```bash
 python train_binding_affinity.py
 ```
-We provide the weights of the final trained model under `checkpoints/binding_affinity_prediction/`. To evaluate the binding affinity prediction model using these weights run:
+
+We provide the weights of the final trained model under [checkpoints/binding_affinity_prediction/](checkpoints/binding_affinity_prediction/). To evaluate the binding affinity prediction model using these weights run:
 ```bash
 python train_binding_affinity.py --ckpt checkpoints/quickbind_default/binding_affinity_prediction/ckpt_seed42.pt
 ```
 
 ## Reproduction of additional results
 
-The pair and single representations used in the interpretability studies, as well as the output files used in the toy virtual screen can be downloaded from zenodo. To reproduce the results in the paper, follow the notebooks `interpretability.ipynb` and `virtual_screening.ipynb`.
+The pair and single representations used in the interpretability studies, as well as the output files used in the toy virtual screen can be downloaded from [zenodo](https://zenodo.org/records/12509123):
+```bash
+mv QuickBind_Zenodo/embeddings_interpret/* ./
+mv QuickBind_Zenodo/virtual_screening/ ./
+```
+To reproduce the results in the paper, follow the notebooks [interpretability.ipynb](interpretability.ipynb) and [virtual_screening.ipynb](virtual_screening.ipynb).
 
