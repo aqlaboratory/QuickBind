@@ -1,0 +1,74 @@
+name: 'quickbind_default'
+seed: 1
+num_epochs: 500 
+batch_size: 1
+patience: 50
+iters_to_accumulate: 2
+loss_params:
+  lig_lig_loss_weight: 1
+  lig_rec_loss_weight: 1
+  aux_loss_weight: 1
+  steric_clash_loss_weight: 1
+  full_distogram_loss_weight: 0
+
+train_names: 'data/timesplit_no_lig_overlap_train'
+val_names: 'data/timesplit_no_lig_overlap_val'
+test_names: 'data/timesplit_test'
+num_workers: 4
+dataset_params:
+  chain_radius: 10 # only keep chains that have an atom in this radius around the ligand
+  remove_h: True
+  cropping: True
+  crop_size: 256
+  binding_site_cropping: True
+  recenter: True
+
+optimizer: AdamW
+optimizer_params:
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+clip_grad: 100 # leave empty for no grad clip
+
+model_parameters:
+  recycle: False
+  recycle_iters: 1
+  c_emb: 32
+  c_s: 64
+  c_z: 64
+  c_hidden: 16
+  no_heads: 12
+  no_qk_points: 4
+  no_v_points: 8
+  num_struct_blocks: 8
+  dropout_rate: 0.1
+  no_transition_layers: 1
+  share_ipa_weights: True
+  c_hidden_msa_att: 16 # c_s // 4 
+  c_hidden_opm: 16 # c_z  // 4
+  c_hidden_mul: 64 # c_z
+  c_hidden_pair_att: 16 # c_z // 4
+  c_s_out: 64
+  no_heads_msa: 8
+  no_heads_pair: 4
+  no_evo_blocks: 12
+  opm_first: False
+  transition_n: 4
+  msa_dropout: 0.15
+  pair_dropout: 0.25
+  use_pairwise_dist: True
+  use_radial_basis: False
+  use_rel_pos: True
+  mask_off_diagonal: True
+  use_op_edge_embed: False
+  use_gated_ipa: True
+  communicate: False
+  one_hot_adj: False
+  use_full_evo_stack: True
+  att_update: True
+  use_multimer_rel_pos: False
+  use_topological_distance: False
+  construct_frames: True
+  
+wandb:
+  project: 'QuickBind'
+  resume: allow
