@@ -3,7 +3,7 @@
 
 ![Overview of QuickBind](overview.jpg)
 
-This repository contains the code for (link to paper).
+This repository contains the code for [QuickBind](https://arxiv.org/abs/2410.16474).
 
 ## Creating the environment
 
@@ -64,8 +64,8 @@ Adding `--unseen_only True` will only include proteins that the model has not se
 
 To facilitate the reproduction of the results from the paper, we provide processed input files for the PDBBind and PoseBusters test sets, and predictions of the final model, including SD files, on [zenodo](https://zenodo.org/records/12509123). To use the preprocessed input files, download them and put them in `data/processed/timesplit_test` and `data/processed/posebusters`, respectively:
 ```bash
-wget https://zenodo.org/records/12509123/files/QuickBind_Zenodo.zip?download=1
-unzip 'QuickBind_Zenodo.zip?download=1'
+wget https://zenodo.org/records/12509123/files/QuickBind_Data.tar.gz?download=1
+tar -xzvf 'QuickBind_Data.tar.gz?download=1'
 mv QuickBind_Zenodo/processed_input_files/timesplit_test/ data/processed/
 mv QuickBind_Zenodo/processed_input_files/posebusters/ data/processed/
 ```
